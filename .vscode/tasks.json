@@ -1,0 +1,33 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++.exe générer le fichier actif",
+            "command": "C:\\msys64\\mingw64\\bin\\g++.exe",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${workspaceFolder}\\src\\**.cpp",
+                "-o",
+                "${workspaceFolder}\\bin\\pricer.exe"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "Tâche générée par le débogueur.",
+            "presentation": {
+                "reveal": "silent",
+                "revealProblems": "onProblem",
+                "close": true
+            }
+        }
+    ],
+    "version": "2.0.0"
+}
