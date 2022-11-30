@@ -4,51 +4,42 @@
 #include <memory>
 #include <vector>
 
-class Node
-
+class DataSet
 {
 public:
-    Node();
+    DataSet(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
+    void SortFeature(std::size_t start, std::size_t end);
+    void SplitSamples(std::size_t start, std::size_t end, std::size_t split);
+    double Impurity(std::size_t start, std::size_t end);
 
-    int Predict(const std::vector<int>& y, const std::vector<int>& samples);
-    double Impurity(const std::vector<int>& y, const std::vector<int>& samples);
-    double Impurity(
-        const std::vector<int>& y,
-        const std::vector<int>& samples_left,
-        const std::vector<int>& samples_right
-    );
-    std::tuple<std::vector<int>, std::vector<int>> Split(
-        unsigned int feature,
-        double threshold,
-        const std::vector<std::vector<double>>& X,
-        std::vector<int>& samples
-    );
-    std::tuple<std::vector<int>, std::vector<int>> FindBestSplit(
-        const std::vector<std::vector<double>>& X,
-        const std::vector<int>& y,
-        std::vector<int>& samples
-    );
-    bool is_leaf();
+    std::vector<std::vector<double>> X;
+    std::vector<int> y;
+    std::vector<double> Xf;
+    std::vector<std::size_t> samples;
+    int n_class;
+    int n_features;
+};
 
+class Node
+{
+public:
+    Node(std::size_t start, std::size_t end);
+    double ChildsImpurity(DataSet& data, std::size_t split);
+    std::size_t BestSplit(DataSet& data);
+    void SplitSamples(DataSet& data);
+    int Predict(const DataSet& data);
+
+    std::size_t start;
+    std::size_t end;
     int feature;
     double threshold;
     double impurity;
     int prediction;
+    int n_samples;
+    bool is_leaf;
 
     std::unique_ptr<Node> left;
     std::unique_ptr<Node> right;
-};
-
-class TreeBuilder
-{
-public:
-    TreeBuilder(const std::vector<std::vector<double>>& X_, const std::vector<int>& y_);
-    void Build(std::unique_ptr<Node>& node, std::vector<int>& samples);
-
-private:
-
-    std::vector<std::vector<double>> X;
-    std::vector<int> y;
 };
 
 
@@ -58,10 +49,11 @@ public:
     DecisionTreeClassifier();
     void Fit(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
     std::vector<int> Predict(const std::vector<std::vector<double>>& X);
-    double Score(std::vector<std::vector<double>> X, std::vector<int> y);
+    double Score(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
     std::unique_ptr<Node> root;
 private:
-    int Predict(std::unique_ptr<Node>& node, const std::vector<double>& sample);
+    int Predict(const std::unique_ptr<Node>& node, const std::vector<double>& sample);
+    std::unique_ptr<Node> Build(DataSet& data, std::size_t start, std::size_t end);
 };
 
 # endif

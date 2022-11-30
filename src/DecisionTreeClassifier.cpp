@@ -4,61 +4,86 @@
 #include <unordered_map>
 #include <algorithm>
 #include <cstring>
+#include <numeric>
 #include "DecisionTreeClassifier.hpp"
 
-Node::Node() :
-    feature(0),
-    threshold(0),
-    impurity(1),
-    prediction(-1),
-    left(nullptr),
-    right(nullptr) {};
-
-bool Node::is_leaf()
+DataSet::DataSet(const std::vector<std::vector<double>>& X_, const std::vector<int>& y_)
+    : X(X_), y(y_), Xf(X.size(), 0)
 {
-    return left == nullptr && right == nullptr;
-};
+    samples.reserve(X.size());
 
-int Node::Predict(const std::vector<int>& y, const std::vector<int>& samples)
-{
-    std::unordered_map<int, int> counter;
-
-    for (int i = 0; i < samples.size(); i++)
+    for (int i = 0; i < y.size(); i++)
     {
-        int class_ = y[samples[i]];
-        counter[class_]++;
+        samples.push_back(i);
     }
 
-    int max_count = 0;
-    int result;
+    n_class = *std::max_element(y.begin(), y.end()) + 1;
+    n_features = X[0].size();
+};
 
-    for (auto [class_, count] : counter) {
-        if (max_count < count) {
-            result = class_;
-            max_count = count;
+
+void DataSet::SortFeature(std::size_t start, std::size_t end)
+{
+    std::vector<std::pair<double, std::size_t>> sorter(Xf.size(), std::make_pair(0, 0));
+
+    for (int i = start; i <= end; i++)
+    {
+        sorter[i].first = Xf[i];
+        sorter[i].second = samples[i];
+    }
+
+    std::sort(
+        sorter.begin() + start,
+        sorter.end() + (end + 1 - Xf.size()),
+        [](std::pair<double, std::size_t>& a, std::pair<double, std::size_t>& b) {return a.first < b.first;}
+    );
+
+    for (int i = start; i <= end; i++)
+    {
+        Xf[i] = sorter[i].first;
+        samples[i] = sorter[i].second;
+    }
+};
+
+
+void Node::SplitSamples(DataSet& data)
+{
+    std::size_t left = start;
+    std::size_t right = end;
+
+    while (left < right)
+    {
+        if (data.X[data.samples[left]][feature] <= threshold)
+        {
+            left++;
+        }
+        else
+        {
+            std::swap(data.samples[left], data.samples[right]);
+            right--;
         }
     }
-
-    return result;
 };
 
-double Node::Impurity(const std::vector<int>& y, const std::vector<int>& samples)
+double DataSet::Impurity(std::size_t start, std::size_t end)
 {
-
-    unsigned int n_class = *std::max_element(y.begin(), y.end()) + 1;
+    if (start > end)
+    {
+        return 0.0;
+    };
 
     std::vector<int> count_class(n_class, 0);
 
-    for (int i = 0; i < samples.size(); i++)
+    for (int i = start; i <= end; i++)
     {
-        count_class[y[samples[i]]] += 1;
+        int k = y[samples[i]];
+        count_class[k]++;
     }
-
     double gini = 1.0;
 
-    for (int class_ = 0; class_ < n_class; class_++)
+    for (int k = 0; k < n_class; k++)
     {
-        double proportion = count_class[class_] / static_cast<double>(samples.size());
+        double proportion = count_class[k] / static_cast<double>(end - start + 1);
         gini -= proportion * proportion;
     }
 
@@ -66,116 +91,121 @@ double Node::Impurity(const std::vector<int>& y, const std::vector<int>& samples
 };
 
 
-double Node::Impurity(
-    const std::vector<int>& y,
-    const std::vector<int>& samples_left,
-    const std::vector<int>& samples_right
-)
+Node::Node(std::size_t start_, std::size_t end_)
+    :
+    start(start_),
+    end(end_),
+    feature(0),
+    threshold(0),
+    impurity(1),
+    prediction(-1),
+    n_samples(end - start + 1),
+    is_leaf(false),
+    left(nullptr),
+    right(nullptr) {};
+
+
+int Node::Predict(const DataSet& data)
 {
-    double n_left = samples_left.size();
-    double n_right = samples_right.size();
-    double n_tot = n_left + n_right;
+    std::vector<int> count_class(data.n_class, 0);
 
-    return n_left / n_tot * Impurity(y, samples_left) + n_right / n_tot * Impurity(y, samples_right);
-
-};
-
-std::tuple<std::vector<int>, std::vector<int>> Node::Split(
-    unsigned int feature,
-    double threshold,
-    const std::vector<std::vector<double>>& X,
-    std::vector<int>& samples
-)
-{
-    std::vector<int> samples_false;
-    std::vector<int> samples_true;
-
-    for (int i = 0; i < samples.size(); i++)
+    for (int i = start; i <= end; i++)
     {
-        if (X[samples[i]][feature] <= threshold)
-        {
-            samples_false.push_back(samples[i]);
-        }
-        else
-        {
-            samples_true.push_back(samples[i]);
+        int k = data.y[data.samples[i]];
+        count_class[k]++;
+    }
+
+    int max = 0;
+    int prediction;
+
+    for (int k = 0; k <= data.n_class; k++) {
+
+        if (max < count_class[k]) {
+            prediction = k;
+            max = count_class[k];
         }
     }
 
-    return { samples_false, samples_true };
+    return prediction;
 };
 
 
-std::tuple<std::vector<int>, std::vector<int>> Node::FindBestSplit(
-    const std::vector<std::vector<double>>& X,
-    const std::vector<int>& y,
-    std::vector<int>& samples)
+double Node::ChildsImpurity(DataSet& data, std::size_t split)
 {
-    int n_features = X[0].size();
-    int n_samples = samples.size();
-    std::vector<int> sample_left_best;
-    std::vector<int> sample_right_best;
-    double min_gini = 1.0;
+    double n_left = split - start + 1;
+    double n_right = end - split;
 
-    for (int i = 0; i < n_samples; i++)
+    return n_left / n_samples * data.Impurity(start, split) + n_right / n_samples * data.Impurity(split + 1, end);
+};
+
+
+std::size_t Node::BestSplit(DataSet& data)
+{
+    double best_gini = 1.0;
+    std::size_t best_split;
+
+    for (int i = 0; i < data.n_features; i++)
     {
-        for (int j = 0; j < n_features; j++)
+        for (int j = start; j <= end; j++)
         {
-            auto [samples_left, samples_right] = Split(j, X[samples[i]][j], X, samples);
+            data.Xf[j] = data.X[data.samples[j]][i];
+        }
 
-            double gini = Impurity(y, samples_left, samples_right);
+        data.SortFeature(start, end);
 
-            if (gini < min_gini)
+        for (int split = start; split <= end; split++)
+        {
+            double gini = ChildsImpurity(data, split);
+
+            if (gini < best_gini)
             {
-                min_gini = gini;
-                feature = j;
-                threshold = X[samples[i]][j];
-                sample_left_best = samples_left;
-                sample_right_best = samples_right;
+                best_split = split;
+                best_gini = gini;
+                feature = i;
+                threshold = data.Xf[split];
             }
         }
     }
-
-    return { sample_left_best, sample_right_best };
+    return best_split;
 }
 
-TreeBuilder::TreeBuilder(const std::vector<std::vector<double>>& X_, const std::vector<int>& y_)
-    : X(X_), y(y_) {};
 
-void TreeBuilder::Build(std::unique_ptr<Node>& node, std::vector<int>& samples)
-{
-    if (samples.size() <= 1)
-    {
-        node->impurity = 0;
-        node->prediction = node->Predict(y, samples);
-        return;
-    }
-    auto [left_samples, right_samples] = node->FindBestSplit(X, y, samples);
+DecisionTreeClassifier::DecisionTreeClassifier()
+    : root(nullptr) {};
 
-    node->impurity = node->Impurity(y, samples);
-
-    node->left = std::make_unique<Node>();
-    node->right = std::make_unique<Node>();
-
-    Build(node->left, left_samples);
-    Build(node->right, right_samples);
-}
-
-DecisionTreeClassifier::DecisionTreeClassifier() :root(std::make_unique<Node>()) {};
 
 void DecisionTreeClassifier::Fit(const std::vector<std::vector<double>>& X, const std::vector<int>& y)
 {
-    TreeBuilder builder(X, y);
+    DataSet data(X, y);
+    root = Build(data, 0, y.size() - 1);
+}
 
-    std::vector<int> samples(y.size(), 0);
 
-    for (int i = 0; i < samples.size(); i++)
+std::unique_ptr<Node> DecisionTreeClassifier::Build(DataSet& data, std::size_t start, std::size_t end)
+{
+    std::unique_ptr<Node> node = std::make_unique<Node>(start, end);
+
+    if (node->n_samples <= 1)
     {
-        samples[i] = i;
+        node->impurity = 0;
+        node->is_leaf = true;
+        node->prediction = node->Predict(data);
+    }
+    else
+    {
+        node->impurity = data.Impurity(start, end);
+
+        std::size_t split = node->BestSplit(data);
+
+        node->SplitSamples(data);
+
+        node->left = Build(data, start, split);
+        node->right = Build(data, split + 1, end);
     }
 
-    builder.Build(root, samples);
+    return node;
 }
+
 
 std::vector<int> DecisionTreeClassifier::Predict(const std::vector<std::vector<double>>& X)
 {
@@ -189,12 +219,10 @@ std::vector<int> DecisionTreeClassifier::Predict(const std::vector<std::vector<d
     return predictions;
 }
 
-int DecisionTreeClassifier::Predict(
-    std::unique_ptr<Node>& node,
-    const std::vector<double>& sample
-)
+
+int DecisionTreeClassifier::Predict(const std::unique_ptr<Node>& node, const std::vector<double>& sample)
 {
-    if (node->is_leaf())
+    if (node->is_leaf)
     {
         return node->prediction;
     };
@@ -209,7 +237,8 @@ int DecisionTreeClassifier::Predict(
     }
 };
 
-double DecisionTreeClassifier::Score(std::vector<std::vector<double>> X, std::vector<int> y)
+
+double DecisionTreeClassifier::Score(const std::vector<std::vector<double>>& X, const std::vector<int>& y)
 {
     // Return the accuracy
 
