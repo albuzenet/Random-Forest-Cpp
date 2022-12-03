@@ -5,7 +5,9 @@
 #include <algorithm>
 #include <cstring>
 #include <numeric>
-#include "DecisionTreeClassifier.hpp"
+#include <iostream>
+#include "../include/DecisionTreeClassifier.hpp"
+
 
 DataSet::DataSet(const std::vector<std::vector<double>>& X_, const std::vector<int>& y_)
     : X(X_), y(y_), Xf(X.size(), 0)
@@ -118,7 +120,7 @@ int Node::Predict(const DataSet& data)
     int max = 0;
     int prediction;
 
-    for (int k = 0; k <= data.n_class; k++) {
+    for (int k = 0; k < data.n_class; k++) {
 
         if (max < count_class[k]) {
             prediction = k;
@@ -185,16 +187,16 @@ std::unique_ptr<Node> DecisionTreeClassifier::Build(DataSet& data, std::size_t s
 {
     std::unique_ptr<Node> node = std::make_unique<Node>(start, end);
 
-    if (node->n_samples <= 1)
+    node->impurity = data.Impurity(start, end);
+
+    if (node->n_samples <= 1 || node->impurity == 0.0)
     {
-        node->impurity = 0;
+        node->impurity = 0.0;
         node->is_leaf = true;
         node->prediction = node->Predict(data);
     }
     else
     {
-        node->impurity = data.Impurity(start, end);
-
         std::size_t split = node->BestSplit(data);
 
         node->SplitSamples(data);
@@ -213,14 +215,14 @@ std::vector<int> DecisionTreeClassifier::Predict(const std::vector<std::vector<d
 
     for (const std::vector<double>& sample : X)
     {
-        predictions.push_back(Predict(root, sample));
+        predictions.push_back(_Predict(root, sample));
     };
 
     return predictions;
 }
 
 
-int DecisionTreeClassifier::Predict(const std::unique_ptr<Node>& node, const std::vector<double>& sample)
+int DecisionTreeClassifier::_Predict(const std::unique_ptr<Node>& node, const std::vector<double>& sample)
 {
     if (node->is_leaf)
     {
@@ -229,11 +231,11 @@ int DecisionTreeClassifier::Predict(const std::unique_ptr<Node>& node, const std
 
     if (sample[node->feature] <= node->threshold)
     {
-        return Predict(node->left, sample);
+        return _Predict(node->left, sample);
     }
     else
     {
-        return Predict(node->right, sample);
+        return _Predict(node->right, sample);
     }
 };
 

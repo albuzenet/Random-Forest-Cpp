@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+
 class DataSet
 {
 public:
@@ -19,6 +20,7 @@ public:
     int n_class;
     int n_features;
 };
+
 
 class Node
 {
@@ -50,9 +52,9 @@ public:
     void Fit(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
     std::vector<int> Predict(const std::vector<std::vector<double>>& X);
     double Score(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
-    std::unique_ptr<Node> root;
 private:
-    int Predict(const std::unique_ptr<Node>& node, const std::vector<double>& sample);
+    std::unique_ptr<Node> root;
+    int _Predict(const std::unique_ptr<Node>& node, const std::vector<double>& sample);
     std::unique_ptr<Node> Build(DataSet& data, std::size_t start, std::size_t end);
 };
 

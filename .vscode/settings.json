@@ -1,7 +1,0 @@
-{
-    "editor.formatOnSave": true,
-    "code-runner.executorMap": {
-        "cpp": "cd $dir && g++ -g $workspaceRoot\\src\\** -o $workspaceRoot\\bin\\tree && $workspaceRoot\\bin\\tree"
-    },
-    "C_Cpp.formatting": "vcFormat"
-}
