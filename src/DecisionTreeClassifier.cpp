@@ -6,7 +6,17 @@
 #include <cstring>
 #include <numeric>
 #include <iostream>
+#include "../include/Profiling.hpp"
 #include "../include/DecisionTreeClassifier.hpp"
+
+#define PROFILING 1
+#if PROFILING
+#define PROFILE_SCOPE(name) InstrumentationTimer timmer##__LINE__(name)
+#define PROFILE_FUNCTION() PROFILE_SCOPE(__FUNCTION__)
+#else
+#define PROFILE_SCOPE(name)
+#define PROFILE_FUNCTION()
+#endif
 
 
 DataSet::DataSet(const std::vector<std::vector<double>>& X_, const std::vector<int>& y_)
@@ -26,6 +36,8 @@ DataSet::DataSet(const std::vector<std::vector<double>>& X_, const std::vector<i
 
 void DataSet::SortFeature(std::size_t start, std::size_t end)
 {
+    PROFILE_FUNCTION();
+
     std::vector<std::pair<double, std::size_t>> sorter(Xf.size(), std::make_pair(0, 0));
 
     for (int i = start; i <= end; i++)
@@ -50,6 +62,8 @@ void DataSet::SortFeature(std::size_t start, std::size_t end)
 
 void Node::SplitSamples(DataSet& data)
 {
+    PROFILE_FUNCTION();
+
     std::size_t left = start;
     std::size_t right = end;
 
@@ -69,7 +83,8 @@ void Node::SplitSamples(DataSet& data)
 
 double DataSet::Impurity(std::size_t start, std::size_t end)
 {
-    if (start > end)
+
+    if (start >= end)
     {
         return 0.0;
     };
@@ -134,6 +149,8 @@ int Node::Predict(const DataSet& data)
 
 double Node::ChildsImpurity(DataSet& data, std::size_t split)
 {
+    PROFILE_FUNCTION();
+
     double n_left = split - start + 1;
     double n_right = end - split;
 
@@ -143,6 +160,8 @@ double Node::ChildsImpurity(DataSet& data, std::size_t split)
 
 std::size_t Node::BestSplit(DataSet& data)
 {
+    PROFILE_FUNCTION();
+
     double best_gini = 1.0;
     std::size_t best_split;
 
@@ -178,13 +197,19 @@ DecisionTreeClassifier::DecisionTreeClassifier()
 
 void DecisionTreeClassifier::Fit(const std::vector<std::vector<double>>& X, const std::vector<int>& y)
 {
+    Instrumentor::Get().BeginSession("Profile");
+
     DataSet data(X, y);
     root = Build(data, 0, y.size() - 1);
+
+    Instrumentor::Get().EndSession();
 }
 
 
 std::unique_ptr<Node> DecisionTreeClassifier::Build(DataSet& data, std::size_t start, std::size_t end)
 {
+    PROFILE_FUNCTION();
+
     std::unique_ptr<Node> node = std::make_unique<Node>(start, end);
 
     node->impurity = data.Impurity(start, end);

@@ -40,6 +40,8 @@ public:
     int n_samples;
     bool is_leaf;
 
+    std::vector<int> node_class;
+
     std::unique_ptr<Node> left;
     std::unique_ptr<Node> right;
 };

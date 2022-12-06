@@ -11,6 +11,7 @@ ext_modules = [
         include_dirs=[*glob("include/"), pybind11.get_include()],
         define_macros=[("PYBIND11", "1")],
         language="c++",
+        extra_compile_args=["/O2"],
     ),
 ]
 
