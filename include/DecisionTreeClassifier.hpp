@@ -11,7 +11,6 @@ public:
     DataSet(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
     void SortFeature(std::size_t start, std::size_t end);
     void SplitSamples(std::size_t start, std::size_t end, std::size_t split);
-    double Impurity(std::size_t start, std::size_t end);
 
     std::vector<std::vector<double>> X;
     std::vector<int> y;
@@ -25,10 +24,12 @@ public:
 class Node
 {
 public:
-    Node(std::size_t start, std::size_t end);
-    double ChildsImpurity(DataSet& data, std::size_t split);
+    Node(std::size_t start, std::size_t end, int n_class);
+    double Impurity(double n_samples, const std::vector<int>& node_class);
+    double ChildsImpurity(int n_left, int n_right, const std::vector<int>& left_class, const std::vector<int>& right_class);
     std::size_t BestSplit(DataSet& data);
     void SplitSamples(DataSet& data);
+    void CountClassFrequency(const DataSet& data);
     int Predict(const DataSet& data);
 
     std::size_t start;
@@ -38,6 +39,7 @@ public:
     double impurity;
     int prediction;
     int n_samples;
+    int n_class;
     bool is_leaf;
 
     std::vector<int> node_class;

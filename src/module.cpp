@@ -11,9 +11,9 @@ namespace py = pybind11;
 PYBIND11_MODULE(example1, m) {
     py::class_<DecisionTreeClassifier>(m, "DecisionTreeClassifier")
         .def(py::init<>())
-        .def("Fit", &DecisionTreeClassifier::Fit)
-        .def("Predict", &DecisionTreeClassifier::Predict)
-        .def("Score", &DecisionTreeClassifier::Score);
+        .def("fit", &DecisionTreeClassifier::Fit)
+        .def("predict", &DecisionTreeClassifier::Predict)
+        .def("score", &DecisionTreeClassifier::Score);
 }
 
 #endif

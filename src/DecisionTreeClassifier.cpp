@@ -22,12 +22,7 @@
 DataSet::DataSet(const std::vector<std::vector<double>>& X_, const std::vector<int>& y_)
     : X(X_), y(y_), Xf(X.size(), 0)
 {
-    samples.reserve(X.size());
-
-    for (int i = 0; i < y.size(); i++)
-    {
-        samples.push_back(i);
-    }
+    std::iota(samples.begin(), samples.end(), 0);
 
     n_class = *std::max_element(y.begin(), y.end()) + 1;
     n_features = X[0].size();
@@ -81,7 +76,7 @@ void Node::SplitSamples(DataSet& data)
     }
 };
 
-double DataSet::Impurity(std::size_t start, std::size_t end)
+double Node::Impurity(double n_samples, const std::vector<int>& node_class_)
 {
 
     if (start >= end)
@@ -89,18 +84,11 @@ double DataSet::Impurity(std::size_t start, std::size_t end)
         return 0.0;
     };
 
-    std::vector<int> count_class(n_class, 0);
-
-    for (int i = start; i <= end; i++)
-    {
-        int k = y[samples[i]];
-        count_class[k]++;
-    }
     double gini = 1.0;
 
     for (int k = 0; k < n_class; k++)
     {
-        double proportion = count_class[k] / static_cast<double>(end - start + 1);
+        double proportion = node_class_[k] / n_samples;
         gini -= proportion * proportion;
     }
 
@@ -108,7 +96,7 @@ double DataSet::Impurity(std::size_t start, std::size_t end)
 };
 
 
-Node::Node(std::size_t start_, std::size_t end_)
+Node::Node(std::size_t start_, std::size_t end_, int n_class_)
     :
     start(start_),
     end(end_),
@@ -117,7 +105,9 @@ Node::Node(std::size_t start_, std::size_t end_)
     impurity(1),
     prediction(-1),
     n_samples(end - start + 1),
+    n_class(n_class_),
     is_leaf(false),
+    node_class(n_class, 0),
     left(nullptr),
     right(nullptr) {};
 
@@ -147,23 +137,28 @@ int Node::Predict(const DataSet& data)
 };
 
 
-double Node::ChildsImpurity(DataSet& data, std::size_t split)
+double Node::ChildsImpurity(int n_left, int n_right, const std::vector<int>& left_class, const std::vector<int>& right_class)
 {
-    PROFILE_FUNCTION();
+    double n_samples = n_left + n_right;
 
-    double n_left = split - start + 1;
-    double n_right = end - split;
-
-    return n_left / n_samples * data.Impurity(start, split) + n_right / n_samples * data.Impurity(split + 1, end);
+    return n_left / n_samples * Impurity(n_left, left_class) + n_right / n_samples * Impurity(n_right, right_class);
 };
 
+void Node::CountClassFrequency(const DataSet& data)
+{
+    for (int i = start; i <= end; i++)
+    {
+        int k = data.y[data.samples[i]];
+        node_class[k]++;
+    }
+};
 
 std::size_t Node::BestSplit(DataSet& data)
 {
     PROFILE_FUNCTION();
 
     double best_gini = 1.0;
-    std::size_t best_split;
+    std::size_t best_split = start;
 
     for (int i = 0; i < data.n_features; i++)
     {
@@ -173,17 +168,31 @@ std::size_t Node::BestSplit(DataSet& data)
         }
 
         data.SortFeature(start, end);
-
-        for (int split = start; split <= end; split++)
         {
-            double gini = ChildsImpurity(data, split);
+            PROFILE_SCOPE("AfterSort");
+            int n_left = 0;
+            int n_right = n_samples;
+            std::vector<int> left_class(n_class, 0);
+            std::vector<int> right_class = node_class;
 
-            if (gini < best_gini)
+            for (int split = start; split < end; split++)
             {
-                best_split = split;
-                best_gini = gini;
-                feature = i;
-                threshold = data.Xf[split];
+                int k = data.y[data.samples[split]];
+
+                n_left++;
+                left_class[k]++;
+                n_right--;
+                right_class[k]--;
+
+                double mean_gini = ChildsImpurity(n_left, n_right, left_class, right_class);
+
+                if (mean_gini < best_gini)
+                {
+                    best_split = split;
+                    best_gini = mean_gini;
+                    feature = i;
+                    threshold = data.Xf[split];
+                }
             }
         }
     }
@@ -210,9 +219,10 @@ std::unique_ptr<Node> DecisionTreeClassifier::Build(DataSet& data, std::size_t s
 {
     PROFILE_FUNCTION();
 
-    std::unique_ptr<Node> node = std::make_unique<Node>(start, end);
+    std::unique_ptr<Node> node = std::make_unique<Node>(start, end, data.n_class);
 
-    node->impurity = data.Impurity(start, end);
+    node->CountClassFrequency(data);
+    node->impurity = node->Impurity(end - start + 1, node->node_class);
 
     if (node->n_samples <= 1 || node->impurity == 0.0)
     {
