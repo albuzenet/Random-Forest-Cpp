@@ -9,7 +9,7 @@
 #include "../include/Profiling.hpp"
 #include "../include/DecisionTreeClassifier.hpp"
 
-#define PROFILING 1
+// #define PROFILING 1
 #if PROFILING
 #define PROFILE_SCOPE(name) InstrumentationTimer timmer##__LINE__(name)
 #define PROFILE_FUNCTION() PROFILE_SCOPE(__FUNCTION__)
@@ -20,7 +20,7 @@
 
 
 DataSet::DataSet(const std::vector<std::vector<double>>& X_, const std::vector<int>& y_)
-    : X(X_), y(y_), Xf(X.size(), 0)
+    : X(X_), y(y_), Xf(X.size(), 0), samples(X.size())
 {
     std::iota(samples.begin(), samples.end(), 0);
 
