@@ -6,7 +6,7 @@ from setuptools import setup
 
 ext_modules = [
     Pybind11Extension(
-        "example1",
+        "cppclassifier",
         sources=glob("src/*.cpp"),
         include_dirs=[*glob("include/"), pybind11.get_include()],
         define_macros=[("PYBIND11", "1")],
@@ -15,4 +15,4 @@ ext_modules = [
     ),
 ]
 
-setup(name="example1", ext_modules=ext_modules)
+setup(name="cppclassifier", ext_modules=ext_modules)

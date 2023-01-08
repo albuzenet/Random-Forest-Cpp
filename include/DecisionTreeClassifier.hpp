@@ -3,12 +3,12 @@
 
 #include <memory>
 #include <vector>
-
+#include <string>
 
 class DataSet
 {
 public:
-    DataSet(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
+    DataSet(const std::vector<std::vector<double>>& X, const std::vector<int>& y, std::string max_features_);
     void SortFeature(std::size_t start, std::size_t end);
     void SplitSamples(std::size_t start, std::size_t end, std::size_t split);
 
@@ -16,8 +16,10 @@ public:
     std::vector<int> y;
     std::vector<double> Xf;
     std::vector<std::size_t> samples;
+    std::vector<std::size_t> features;
     int n_class;
     int n_features;
+    int max_features;
 };
 
 
@@ -52,12 +54,14 @@ public:
 class DecisionTreeClassifier
 {
 public:
-    DecisionTreeClassifier();
+    DecisionTreeClassifier(std::string max_features_ = "all");
     void Fit(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
     std::vector<int> Predict(const std::vector<std::vector<double>>& X);
     double Score(const std::vector<std::vector<double>>& X, const std::vector<int>& y);
 private:
     std::unique_ptr<Node> root;
+    std::string max_features;
+
     int _Predict(const std::unique_ptr<Node>& node, const std::vector<double>& sample);
     std::unique_ptr<Node> Build(DataSet& data, std::size_t start, std::size_t end);
 };

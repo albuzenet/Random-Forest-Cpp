@@ -1,5 +1,7 @@
 #include <map>
 #include <algorithm>
+
+#include "../include/DecisionTreeClassifier.hpp"
 #include "../include/RandomForest.hpp"
 
 RandomForest::RandomForest(int n_estimators_) : n_estimators(n_estimators_)
@@ -8,7 +10,7 @@ RandomForest::RandomForest(int n_estimators_) : n_estimators(n_estimators_)
 
     for (int i = 0; i < n_estimators; i++)
     {
-        estimators.emplace_back();
+        estimators.push_back(DecisionTreeClassifier("sqrt"));
     }
 }
 
