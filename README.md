@@ -43,5 +43,5 @@ print(f"Accuracy on the test set = {tree.score(X_test, y_test):.2%}")
 
 Output
 ```
-Accuracy on the test set = 92.76%
+Accuracy on the test set = 93.02%
 ```
