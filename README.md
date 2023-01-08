@@ -4,12 +4,15 @@ An implementation of the Random Forests classifier algorithme using C++
 Implement an sklearn-like API in Python using Pybind11.
 This implementation is multiclass, single output.
 
-## build
+## Build
 You need to have Microsoft Visual Studio 2017 or newer installed to build this package.
 Pybind11 will automatically compile and create links between the C++ and Python types.
+All dependencies will be automatically installed using pip.
 
 ```
-cd ~/RandomForest
+cd ./RandomForestCpp
+python -m venv .venv
+.\venv\Scripts\activate.bat
 pip install .
 ```
 
@@ -17,13 +20,6 @@ pip install .
 
 Both the RandomForest and DecisionTreeClassifier implement the classic fit, predict, score methods.
 This is similar to the api used by sklearn.
-
-First make sure numpy and sklearn are installed
-
-```
-pip install numpy
-pip install sklearn
-```
 
 We can for example test the estimator on a toy dataset of sklearn
 
@@ -44,6 +40,7 @@ tree.fit(X_train, y_train)
 print(f"Accuracy on the test set = {tree.score(X_test, y_test):.2%}")
 ```
 
+Output
 ```
 Accuracy on the test set = 92.76%
 ```
