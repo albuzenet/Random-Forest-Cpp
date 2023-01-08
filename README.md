@@ -1,4 +1,4 @@
-# Random Forest (c++)
+# Random Forest (C++ with a Python API)
 
 An implementation of the Random Forests classifier algorithm using C++.
 Implement an sklearn-like API in Python using Pybind11.
