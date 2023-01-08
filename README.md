@@ -13,6 +13,7 @@ All dependencies will be automatically installed using pip.
 cd .\RandomForestCpp
 python -m venv .venv
 .\.venv\Scripts\activate.bat
+pip install -r requirements.txt
 pip install .
 ```
 
