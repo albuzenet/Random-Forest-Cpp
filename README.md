@@ -18,7 +18,7 @@ pip install .
 
 ## Example
 
-You can interact with the C++ types directly in Python. <br />
+You can interact with the C++ types directly in Python.<br />
 Both the RandomForest and DecisionTreeClassifier implement the classic fit, predict, score methods.
 This is similar to the api used by sklearn.
 
