@@ -1,8 +1,8 @@
 # Random Forest (c++)
 
-An implementation of the Random Forests classifier algorithme using C++
+An implementation of the Random Forests classifier algorithm using C++
 Implement an sklearn-like API in Python using Pybind11.
-This implementation is multiclass, single output.
+This implementation is multiclass and single output.
 
 ## Build
 You need to have Microsoft Visual Studio 2017 or newer installed to build this package.
