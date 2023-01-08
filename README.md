@@ -10,7 +10,7 @@ Pybind11 will automatically compile and create links between the C++ and Python 
 All dependencies will be automatically installed using pip.
 
 ```
-cd ./RandomForestCpp
+cd .\RandomForestCpp
 python -m venv .venv
 .\.venv\Scripts\activate.bat
 pip install .
