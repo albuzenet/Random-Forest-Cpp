@@ -1,12 +1,12 @@
 # Random Forest (c++)
 
-An implementation of the Random Forests classifier algorithm using C++. <br />
-Implement an sklearn-like API in Python using Pybind11. <br />
+An implementation of the Random Forests classifier algorithm using C++.
+Implement an sklearn-like API in Python using Pybind11.
 This implementation is multiclass and single output.
 
 ## Build
-You need to have Microsoft Visual Studio 2017 or newer installed to build this package. <br />
-Pybind11 will automatically compile and create links between the C++ and Python types. <br />
+You need to have Microsoft Visual Studio 2017 or newer installed to build this package.
+Pybind11 will automatically compile and create links between the C++ and Python types.
 All dependencies will be automatically installed using pip.
 
 ```
@@ -19,7 +19,7 @@ pip install .
 ## Example
 
 You can interact with the C++ types directly in Python. <br />
-Both the RandomForest and DecisionTreeClassifier implement the classic fit, predict, score methods. <br />
+Both the RandomForest and DecisionTreeClassifier implement the classic fit, predict, score methods.
 This is similar to the api used by sklearn.
 
 We can for example test the estimator on a toy dataset of sklearn
