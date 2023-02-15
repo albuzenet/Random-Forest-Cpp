@@ -23,7 +23,7 @@ You can interact with the C++ types directly in Python.<br />
 Both the RandomForest and DecisionTreeClassifier implement the classic fit, predict, score methods.
 This is similar to the api used by sklearn.
 
-We can for example test the estimator on a toy dataset of sklearn
+For example, we can test the estimator on one of the toy dataset of sklearn :
 
 ```python
 
